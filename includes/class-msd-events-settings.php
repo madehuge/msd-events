@@ -156,7 +156,7 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
          * Helper: Get API URL.
          */
         public static function get_api_url() {
-            return get_option( self::OPTION_API_URL, 'https://maps.googleapis.com/maps/api/geocode/json' );
+            return get_option( self::OPTION_API_URL, '' );
         }
 
         /**

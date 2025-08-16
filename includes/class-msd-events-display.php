@@ -1,6 +1,6 @@
 <?php
 /**
- * Handles the display of events on the front-end with pagination and Google Maps.
+ * Handles the display of events on the front-end with caching and Google Maps.
  */
 
 if ( ! class_exists( 'MSD_Events_Display' ) ) {
@@ -12,19 +12,21 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
         }
 
         /**
-         * Render the events list with pagination and map.
+         * Render the events list with caching.
          */
         public function render_events_list( $atts ) {
-            ob_start();
+            $per_page = get_option( 'msd_events_per_page', 10 );
+            $paged    = max( 1, get_query_var( 'paged' ) );
 
-            // Determine per-page setting
-            $per_page = get_option( 'msd_events_per_page', '' );
-            if ( empty( $per_page ) || ! is_numeric( $per_page ) || $per_page <= 0 ) {
-                $per_page = get_option( 'posts_per_page', 10 );
+            // Use a transient for caching
+            $cache_key = 'msd_events_list_' . $paged . '_' . $per_page;
+            $cached_output = get_transient( $cache_key );
+
+            if ( $cached_output ) {
+                return $cached_output; // Return cached HTML
             }
 
-            // Current page
-            $paged = max( 1, get_query_var( 'paged' ) );
+            ob_start();
 
             // Query events CPT
             $args = [
@@ -42,10 +44,11 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
 
                 while ( $events->have_posts() ) {
                     $events->the_post();
-                    $date = get_post_meta( get_the_ID(), '_msd_event_date', true );
-                    $location = get_post_meta( get_the_ID(), '_msd_event_date', true );
-                    $lat = get_post_meta( get_the_ID(), '_msd_event_lat', true );
-                    $lng = get_post_meta( get_the_ID(), '_msd_event_lng', true );
+                    
+                    $date      = get_post_meta( get_the_ID(), '_msd_event_date', true );
+                    $location  = get_post_meta( get_the_ID(), '_msd_event_location', true );
+                    $lat       = get_post_meta( get_the_ID(), '_msd_event_lat', true );
+                    $lng       = get_post_meta( get_the_ID(), '_msd_event_lng', true );
 
                     echo '<div class="msd-event-item">';
                         echo '<h3>' . esc_html( get_the_title() ) . '</h3>';
@@ -60,7 +63,7 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
 
                         echo '<div class="msd-event-excerpt">' . wp_kses_post( wp_trim_words( get_the_content(), 20 ) ) . '</div>';
 
-                        // Google Map
+                        // Google Map container
                         if ( $lat && $lng ) : 
                             $map_id = 'msd-map-' . get_the_ID(); 
                         ?>
@@ -95,10 +98,15 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
                 echo '<p>' . esc_html__( 'No events found.', 'msd-events' ) . '</p>';
             }
 
-            // Enqueue Google Maps API once
+            // Enqueue Google Maps once
             $this->enqueue_google_maps();
 
-            return ob_get_clean();
+            $output = ob_get_clean();
+
+            // Store output in transient for 12 hours (43200 seconds)
+            set_transient( $cache_key, $output, 12 * HOUR_IN_SECONDS );
+
+            return $output;
         }
 
         /**
@@ -109,11 +117,17 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
 
             if ( $loaded ) return;
 
-            $api_key = 'YOUR_GOOGLE_MAPS_API_KEY'; // replace with your API key
-            echo '<script async defer src="https://maps.googleapis.com/maps/api/js?key=' . esc_attr( $api_key ) . '"></script>';
+            // Get API key from plugin settings
+            $api_key = get_option( 'msd_events_api_key', '' );
 
-            $loaded = true;
+            if ( ! empty( $api_key ) ) {
+                echo '<script async defer src="https://maps.googleapis.com/maps/api/js?key=' . esc_attr( $api_key ) . '"></script>';
+                $loaded = true;
+            } else {
+                error_log( 'MSD Events: Google Maps API key is missing in plugin settings.' );
+            }
         }
+
 
     }
 
