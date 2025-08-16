@@ -11,27 +11,27 @@ if ( ! class_exists( 'MSD_Events_Geocode' ) ) {
 
     class MSD_Events_Geocode {
 
-        /**
-         * API Key from settings
-         *
-         * @var string
-         */
         private $api_key;
-
-        /**
-         * API URL from settings
-         *
-         * @var string
-         */
         private $api_url;
 
-        /**
-         * Constructor
-         */
         public function __construct() {
+
+            // Ensure constants are defined
+            if ( ! defined( 'MSD_EVENTS_API_KEY_OPTION' ) ) {
+                define( 'MSD_EVENTS_API_KEY_OPTION', 'msd_events_api_key' );
+            }
+
+            if ( ! defined( 'MSD_EVENTS_GEOCODE_API_URL_OPTION' ) ) {
+                define( 'MSD_EVENTS_GEOCODE_API_URL_OPTION', 'msd_events_api_url' );
+            }
+
+            if ( ! defined( 'MSD_EVENTS_GEO_CACHE_PREFIX' ) ) {
+                define( 'MSD_EVENTS_GEO_CACHE_PREFIX', 'msd_events_geo_' );
+            }
+
             // Load settings from DB
             $this->api_key = get_option( MSD_EVENTS_API_KEY_OPTION, '' );
-            $this->api_url = get_option( MSD_EVENTS_GEOCODE_API_URL_OPTION, '' ); // Dynamic URL from settings.php
+            $this->api_url = get_option( MSD_EVENTS_GEOCODE_API_URL_OPTION, '' );
         }
 
         /**
@@ -41,8 +41,13 @@ if ( ! class_exists( 'MSD_Events_Geocode' ) ) {
          * @return array|WP_Error
          */
         public function get_coordinates( $address ) {
+
             if ( empty( $address ) ) {
                 return new WP_Error( 'no_address', __( 'No address provided.', 'msd-events' ) );
+            }
+
+            if ( empty( $this->api_key ) || empty( $this->api_url ) ) {
+                return new WP_Error( 'no_api', __( 'API Key or URL not set in MSD Events settings.', 'msd-events' ) );
             }
 
             // Check cache first
@@ -59,7 +64,6 @@ if ( ! class_exists( 'MSD_Events_Geocode' ) ) {
                 'key'     => $this->api_key,
             ];
 
-            // Use dynamic API URL from settings
             $url = add_query_arg( $params, $this->api_url );
 
             $response = wp_remote_get( $url );

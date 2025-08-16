@@ -42,6 +42,8 @@ class MSD_Events {
         define( 'MSD_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
         define( 'MSD_EVENTS_URL', plugin_dir_url( __FILE__ ) );
         define( 'MSD_EVENTS_FILE', __FILE__ );
+    
+        
     }
 
     private function includes() {
@@ -57,8 +59,10 @@ class MSD_Events {
 
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-settings.php';
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-form.php';
-        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
-        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-template.php';
+       
         // Block class will be added later
         require_once MSD_EVENTS_DIR . 'includes/helpers.php';
 
@@ -84,6 +88,8 @@ class MSD_Events {
         // Form instance
         new MSD_Events_Form();
 
+         // Template instance
+        new MSD_Events_Template();
         // Assets instance
         new MSD_Events_Assets();
 
@@ -98,6 +104,7 @@ class MSD_Events {
     }
 
 }
+
 
 // Load the plugin
 MSD_Events::instance();

@@ -55,3 +55,15 @@ jQuery(document).ready(function($){
         }, 'json');
     });
 });
+
+
+// Get Geolocation Code
+
+function initAutocomplete() {
+    var input = document.getElementById('event_location');
+    if ( input ) {
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['geocode'] // restrict to addresses
+        });
+    }
+}
