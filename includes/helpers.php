@@ -118,7 +118,7 @@ if ( ! function_exists( 'msd_events_get_template' ) ) {
     function msd_events_get_template( $template_name ) {
         $template_path = locate_template( [ 'msd-events/' . $template_name ] );
         if ( ! $template_path ) {
-            $template_path = MSD_EVENTS_PLUGIN_DIR . 'templates/' . $template_name;
+            $template_path = MSD_EVENTS_DIR . 'templates/' . $template_name;
         }
         return apply_filters( 'msd_events_template_path', $template_path, $template_name );
     }

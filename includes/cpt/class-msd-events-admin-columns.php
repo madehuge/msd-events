@@ -43,6 +43,8 @@ if ( ! class_exists( 'MSD_Events_Admin_Columns' ) ) {
                 if ( 'title' === $key ) {
                     $new_columns['event_date'] = __( 'Event Date & Time', 'msd-events' );
                     $new_columns['location']   = __( 'Location', 'msd-events' );
+                    $new_columns['latitude']  = __( 'Latitude', 'msd-events' );
+                    $new_columns['longitude'] = __( 'Longitude', 'msd-events' );
                 }
             }
 
@@ -69,6 +71,14 @@ if ( ! class_exists( 'MSD_Events_Admin_Columns' ) ) {
 
                 case 'location':
                     $this->render_location( $post_id );
+                    break;
+
+                case 'latitude':
+                    $this->render_latitude( $post_id );
+                    break;
+
+                case 'longitude':
+                    $this->render_longitude( $post_id );
                     break;
             }
         }
@@ -103,6 +113,28 @@ if ( ! class_exists( 'MSD_Events_Admin_Columns' ) ) {
         private function render_location( int $post_id ): void {
             $location = get_post_meta( $post_id, '_msd_event_location', true );
             echo $location ? esc_html( $location ) : '—';
+        }
+
+        /**
+         * Render Latitude column.
+         *
+         * @param int $post_id Post ID.
+         * @return void
+         */
+        private function render_latitude( int $post_id ): void {
+            $latitude = get_post_meta( $post_id, '_msd_event_lat', true );
+            echo $latitude ? esc_html( $latitude ) : '—';
+        }
+
+        /**
+         * Render Longitude column.
+         *
+         * @param int $post_id Post ID.
+         * @return void
+         */
+        private function render_longitude( int $post_id ): void {
+            $longitude = get_post_meta( $post_id, '_msd_event_lng', true );
+            echo $longitude ? esc_html( $longitude ) : '—';
         }
     }
 }

@@ -26,6 +26,8 @@ class MSD_Events_Meta_Box implements MSD_Meta_Box_Registrable {
 
         $event_date     = get_post_meta( $post->ID, '_msd_event_date', true );
         $event_location = get_post_meta( $post->ID, '_msd_event_location', true );
+        $latitude       = get_post_meta( $post->ID, '_msd_event_lat', true );
+        $longitude      = get_post_meta( $post->ID, '_msd_event_lng', true );
 
         ?>
         <p>
@@ -41,6 +43,22 @@ class MSD_Events_Meta_Box implements MSD_Meta_Box_Registrable {
                    id="msd_event_location" 
                    name="msd_event_location" 
                    value="<?php echo esc_attr( $event_location ); ?>" 
+                   class="widefat" />
+        </p>
+        <p>
+            <label for="msd_event_lat"><?php esc_html_e( 'Latitude', 'msd-events' ); ?></label><br>
+            <input type="text" 
+                   id="msd_event_lat" 
+                   name="msd_event_lat" 
+                   value="<?php echo esc_attr( $latitude ); ?>" 
+                   class="widefat" />
+        </p>
+        <p>
+            <label for="msd_event_lng"><?php esc_html_e( 'Longitude', 'msd-events' ); ?></label><br>
+            <input type="text" 
+                   id="msd_event_lng" 
+                   name="msd_event_lng" 
+                   value="<?php echo esc_attr( $longitude ); ?>" 
                    class="widefat" />
         </p>
         <?php
@@ -66,6 +84,14 @@ class MSD_Events_Meta_Box implements MSD_Meta_Box_Registrable {
 
         if ( isset( $_POST['msd_event_location'] ) ) {
             update_post_meta( $post_id, '_msd_event_location', sanitize_text_field( $_POST['msd_event_location'] ) );
+        }
+
+        if ( isset( $_POST['msd_event_lat'] ) ) {
+            update_post_meta( $post_id, '_msd_event_lat', sanitize_text_field( $_POST['msd_event_lat'] ) );
+        }
+        
+        if ( isset( $_POST['msd_event_lng'] ) ) {
+            update_post_meta( $post_id, '_msd_event_lng', sanitize_text_field( $_POST['msd_event_lng'] ) );
         }
     }
 }

@@ -1,0 +1,115 @@
+/* ================================
+   Global Variables
+================================ */
+:root {
+    --msd-primary: #0073aa;
+    --msd-primary-hover: #005177;
+    --msd-secondary: #6c757d;
+    --msd-error: #dc3545;
+    --msd-border: #b77171;
+    --msd-input-border: #ccc;
+    --msd-bg: #f9f9f9;
+    --msd-text: #333;
+}
+/* ================================
+   Event Form Styles (Optimized)
+================================ */
+#msd-event-form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid var(--msd-border);
+    border-radius: 6px;
+    background: var(--msd-bg);
+    color: var(--msd-text);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    font-family: Arial, sans-serif;
+}
+
+#msd-event-form p {
+    margin-bottom: 15px;
+}
+
+#msd-event-form label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+#msd-event-form input,
+#msd-event-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--msd-input-border);
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+#msd-event-form input:focus,
+#msd-event-form textarea:focus {
+    border-color: var(--msd-primary);
+    box-shadow: 0 0 3px var(--msd-primary);
+    outline: none;
+}
+
+#msd-event-form .required {
+    color: var(--msd-error);
+}
+
+#msd-event-form .msd-btn {
+    background-color: var(--msd-primary);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#msd-event-form .msd-btn:hover {
+    background-color: var(--msd-primary-hover);
+}
+
+#msd-event-form .msd-btn-secondary {
+    background-color: var(--msd-secondary);
+    color: #fff;
+}
+
+/* ================================
+   Error & Valid Styles
+================================ */
+#msd-event-form input.error,
+#msd-event-form textarea.error {
+    border: 1px solid var(--msd-error);
+}
+
+#msd-event-form input.valid,
+#msd-event-form textarea.valid {
+    border: 1px solid var(--msd-primary);
+}
+
+#msd-event-form .msd-error {
+    color: var(--msd-error);
+    font-size: 0.9em;
+    margin-top: 2px;
+    margin-bottom: 8px;
+}
+
+/* ================================
+   General Form Messages
+================================ */
+#msd-event-form #msd-form-message {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+#msd-event-form #msd-form-message.error-message {
+    color: var(--msd-error);
+}
+
+#msd-event-form #msd-form-message.success-message {
+    color: var(--msd-primary);
+}

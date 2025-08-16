@@ -55,12 +55,14 @@ class MSD_Events {
         require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-meta-box.php';
         require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-admin-columns.php';
 
-        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-settings.php';
-        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-form.php';
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-settings.php';
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-form.php';
         //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
         //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
         // Block class will be added later
-       // require_once MSD_EVENTS_DIR . 'includes/helpers.php';
+        require_once MSD_EVENTS_DIR . 'includes/helpers.php';
+
+        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-assets.php';
     }
 
     private function init_hooks() {
@@ -77,10 +79,14 @@ class MSD_Events {
         }
 
         // Settings instance
-       // new MSD_Events_Settings();
+        new MSD_Events_Settings();
 
         // Form instance
-        //new MSD_Events_Form();
+        new MSD_Events_Form();
+
+        // Assets instance
+        new MSD_Events_Assets();
+
     }
 
     public function load_textdomain() {
