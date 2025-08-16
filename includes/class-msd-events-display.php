@@ -42,10 +42,10 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
 
                 while ( $events->have_posts() ) {
                     $events->the_post();
-                    $date = get_post_meta( get_the_ID(), 'event_date', true );
-                    $location = get_post_meta( get_the_ID(), 'event_location', true );
-                    $lat = get_post_meta( get_the_ID(), 'event_latitude', true );
-                    $lng = get_post_meta( get_the_ID(), 'event_longitude', true );
+                    $date = get_post_meta( get_the_ID(), '_msd_event_date', true );
+                    $location = get_post_meta( get_the_ID(), '_msd_event_date', true );
+                    $lat = get_post_meta( get_the_ID(), '_msd_event_lat', true );
+                    $lng = get_post_meta( get_the_ID(), '_msd_event_lng', true );
 
                     echo '<div class="msd-event-item">';
                         echo '<h3>' . esc_html( get_the_title() ) . '</h3>';
@@ -61,19 +61,17 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
                         echo '<div class="msd-event-excerpt">' . wp_kses_post( wp_trim_words( get_the_content(), 20 ) ) . '</div>';
 
                         // Google Map
-                        if ( $lat && $lng ) {
-                            $map_id = 'msd-map-' . get_the_ID();
-                            echo '<div id="' . esc_attr( $map_id ) . '" style="width:100%; height:300px;"></div>';
-                            echo "
-                            <script>
-                                function initMap{$map_id}() {
-                                    var location = { lat: " . floatval( $lat ) . ", lng: " . floatval( $lng ) . " };
-                                    var map = new google.maps.Map(document.getElementById('{$map_id}'), { zoom: 14, center: location });
-                                    new google.maps.Marker({ position: location, map: map });
-                                }
-                                document.addEventListener('DOMContentLoaded', function() { initMap{$map_id}(); });
-                            </script>";
-                        }
+                        if ( $lat && $lng ) : 
+                            $map_id = 'msd-map-' . get_the_ID(); 
+                        ?>
+                            <div 
+                                id="<?php echo esc_attr( $map_id ); ?>" 
+                                class="msd-event-map" 
+                                data-lat="<?php echo esc_attr( $lat ); ?>" 
+                                data-lng="<?php echo esc_attr( $lng ); ?>" 
+                                style="width:100%; height:300px">
+                            </div>
+                        <?php endif;
 
                     echo '</div>';
                 }

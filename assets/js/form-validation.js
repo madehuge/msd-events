@@ -66,4 +66,27 @@ function initAutocomplete() {
             types: ['geocode'] // restrict to addresses
         });
     }
+    initMSDEventMaps();
+}
+
+// Initialize Google Maps for event location
+function initMSDEventMaps() {
+    const mapContainers = document.querySelectorAll('.msd-event-map');
+
+    mapContainers.forEach(container => {
+        const lat = parseFloat(container.dataset.lat);
+        const lng = parseFloat(container.dataset.lng);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const map = new google.maps.Map(container, {
+                center: { lat, lng },
+                zoom: 14
+            });
+
+            new google.maps.Marker({
+                position: { lat, lng },
+                map: map
+            });
+        }
+    });
 }
