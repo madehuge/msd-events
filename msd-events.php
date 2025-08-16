@@ -22,7 +22,7 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
     return;
 }
 
-final class MSD_Events {
+class MSD_Events {
 
     const VERSION = '0.1.0';
     private static $instance = null;
@@ -45,26 +45,42 @@ final class MSD_Events {
     }
 
     private function includes() {
-        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-cpt.php';
-        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-settings.php';
-        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-form.php';
-        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
-        require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
+        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-cpt.php';  DELETE THIS LINE
+        require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-cpt-registrable.php';
+        require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-taxonomy-registrable.php';
+        require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-meta-box-registrable.php';
+
+        require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-cpt.php';
+        require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-taxonomy.php';
+        require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-meta-box.php';
+        require_once MSD_EVENTS_DIR . 'includes/cpt/class-msd-events-admin-columns.php';
+
+        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-settings.php';
+        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-form.php';
+        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
+        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
         // Block class will be added later
-        require_once MSD_EVENTS_DIR . 'includes/helpers.php';
+       // require_once MSD_EVENTS_DIR . 'includes/helpers.php';
     }
 
     private function init_hooks() {
         add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
         // CPT instance
+
         new MSD_Events_CPT();
+        new MSD_Events_Taxonomy();
+        new MSD_Events_Meta_Box();
+
+        if ( is_admin() ) {
+            new MSD_Events_Admin_Columns();
+        }
 
         // Settings instance
-        new MSD_Events_Settings();
+       // new MSD_Events_Settings();
 
         // Form instance
-        new MSD_Events_Form();
+        //new MSD_Events_Form();
     }
 
     public function load_textdomain() {
