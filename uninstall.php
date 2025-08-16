@@ -10,9 +10,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
-// Optional: Show an admin notice before uninstall (WordPress doesn’t allow JS alerts here, 
-// but you can log a message to the debug log for confirmation)
-error_log( 'MSD Events plugin is being uninstalled. All data will be removed.' );
+// Optional: 
+//error_log( 'MSD Events plugin is being uninstalled. All data will be removed.' );
 
 // 1. Delete plugin options
 $option_keys = [
@@ -22,7 +21,7 @@ $option_keys = [
 ];
 foreach ( $option_keys as $key ) {
     delete_option( $key );
-    delete_site_option( $key ); // In case of multisite
+    //delete_site_option( $key ); // In case of multisite
 }
 
 // 2. Delete all MSD Events posts
@@ -62,9 +61,3 @@ $wpdb->query(
         $transient_like
     )
 );
-
-// 5. Delete plugin custom tables if any (optional)
-// Example: $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}msd_events_table;" );
-
-// 6. Optionally log completion
-error_log( 'MSD Events plugin uninstall complete. All plugin data removed.' );
