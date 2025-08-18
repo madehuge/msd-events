@@ -135,21 +135,25 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
          * Enqueue Google Maps API.
          */
         protected function enqueue_google_maps() {
-            static $loaded = false;
-            if ( $loaded ) {
+            $api_key = get_option( 'msd_events_api_key', '' );
+
+            if ( empty( $api_key ) ) {
+                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                    error_log( 'MSD Events: Google Maps API key is missing in plugin settings.' );
+                }
                 return;
             }
 
-            $api_key = get_option( 'msd_events_api_key', '' );
-            if ( ! empty( $api_key ) ) {
-                wp_enqueue_script(
+            // Check if already enqueued or registered
+            if ( ! wp_script_is( 'google-maps', 'enqueued' ) && ! wp_script_is( 'google-maps', 'registered' ) ) {
+                wp_register_script(
                     'google-maps',
-                    esc_url( 'https://maps.googleapis.com/maps/api/js?key=' . rawurlencode( $api_key ) . '&libraries=places&callback=initAutocomplete' ),
+                    esc_url( 'https://maps.googleapis.com/maps/api/js?key=' . rawurlencode( $api_key ) . '&libraries=places' ),
                     [],
                     null,
                     true
                 );
-                $loaded = true;
+                wp_enqueue_script( 'google-maps' );
             }
         }
 
