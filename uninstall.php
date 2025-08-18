@@ -1,63 +1,51 @@
 <?php
 /**
- * MSD Events Uninstall
+ * Uninstall script for MSD Events
  *
- * @package MSD_Events
+ * Fired when the plugin is deleted from WordPress.
+ * Cleans up CPT posts, options, and transients.
  */
 
-// Exit if accessed directly
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
-// Optional: 
-//error_log( 'MSD Events plugin is being uninstalled. All data will be removed.' );
-
-// 1. Delete plugin options
-$option_keys = [
-    'msd_events_api_key',
-    'msd_events_api_url',
-    'msd_events_per_page',
-];
-foreach ( $option_keys as $key ) {
-    delete_option( $key );
-    //delete_site_option( $key ); // In case of multisite
-}
-
-// 2. Delete all MSD Events posts
-$event_posts = get_posts( [
+// 1. Delete all Events CPT posts
+$events = get_posts( [
     'post_type'      => 'msd_event',
-    'post_status'    => 'any',
-    'numberposts'    => -1,
+    'posts_per_page' => -1,
     'fields'         => 'ids',
 ] );
 
-if ( ! empty( $event_posts ) ) {
-    foreach ( $event_posts as $post_id ) {
-        wp_delete_post( $post_id, true ); // true = force delete
+if ( $events ) {
+    foreach ( $events as $event_id ) {
+        wp_delete_post( $event_id, true ); // force delete
     }
 }
 
-// 3. Delete associated taxonomies terms
-$taxonomies = [ 'msd_event_category', 'msd_event_tag' ]; // Replace with your taxonomies
-foreach ( $taxonomies as $taxonomy ) {
-    $terms = get_terms( [
-        'taxonomy'   => $taxonomy,
-        'hide_empty' => false,
-    ] );
-    if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-        foreach ( $terms as $term ) {
-            wp_delete_term( $term->term_id, $taxonomy );
-        }
-    }
-}
+// 2. Remove plugin options/settings
+delete_option( 'msd_events_api_key' );
+delete_option( 'msd_events_per_page' );
+delete_option( 'msd_events_api_url' );
 
-// 4. Delete transients (cached geocodes)
+// If you have more plugin-specific options, remove them here
+// delete_option( 'msd_events_other_setting' );
+
+// 3. Clear transients/cache
 global $wpdb;
-$transient_like = '_transient_msd_events_geo_%';
-$wpdb->query(
-    $wpdb->prepare(
-        "DELETE FROM $wpdb->options WHERE option_name LIKE %s",
-        $transient_like
-    )
+$transients = $wpdb->get_col(
+    "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE '_transient_msd_events_list_%'"
 );
+
+foreach ( $transients as $transient ) {
+    $key = str_replace( '_transient_', '', $transient );
+    delete_transient( $key );
+}
+
+// 4. Optional: drop custom DB tables (if you ever created any)
+// $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}msd_events_meta" );
+
+// Log cleanup (useful in dev mode)
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+    error_log( 'MSD Events plugin uninstalled: all events, options, and caches removed.' );
+}
