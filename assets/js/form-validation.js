@@ -1,4 +1,4 @@
-jQuery(document).ready(function($){
+jQuery(document).ready(function($) {
     const form = $('#msd-event-form');
     const formMessage = $('#msd-form-message');
 
@@ -56,20 +56,22 @@ jQuery(document).ready(function($){
     });
 });
 
-
-// Get Geolocation Code
-
-function initAutocomplete() {
-    var input = document.getElementById('event_location');
-    if ( input ) {
-        var autocomplete = new google.maps.places.Autocomplete(input, {
+/**
+ * Google callback must be global since it's called directly from script tag.
+ */
+window.initAutocomplete = function() {
+    const input = document.getElementById('event_location');
+    if (input) {
+        const autocomplete = new google.maps.places.Autocomplete(input, {
             types: ['geocode'] // restrict to addresses
         });
     }
     initMSDEventMaps();
-}
+};
 
-// Initialize Google Maps for event location
+/**
+ * Initialize Google Maps for event location
+ */
 function initMSDEventMaps() {
     const mapContainers = document.querySelectorAll('.msd-event-map');
 

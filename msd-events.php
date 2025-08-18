@@ -14,19 +14,27 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-// Minimum PHP version check
+/**
+ * Minimum PHP version check
+ */
 if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
     add_action( 'admin_notices', function() {
-        echo '<div class="error"><p>MSD Events requires PHP 7.4 or higher.</p></div>';
+        printf(
+            '<div class="error"><p>%s</p></div>',
+            esc_html__( 'MSD Events requires PHP 7.4 or higher.', 'msd-events' )
+        );
     } );
     return;
 }
 
-class MSD_Events {
+final class MSD_Events {
 
     const VERSION = '0.1.0';
     private static $instance = null;
 
+    /**
+     * Singleton Instance
+     */
     public static function instance() {
         if ( null === self::$instance ) {
             self::$instance = new self();
@@ -37,17 +45,28 @@ class MSD_Events {
         return self::$instance;
     }
 
+    /**
+     * Define plugin constants
+     */
     private function setup_constants() {
-        define( 'MSD_EVENTS_VERSION', self::VERSION );
-        define( 'MSD_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
-        define( 'MSD_EVENTS_URL', plugin_dir_url( __FILE__ ) );
-        define( 'MSD_EVENTS_FILE', __FILE__ );
-    
-        
+        if ( ! defined( 'MSD_EVENTS_VERSION' ) ) {
+            define( 'MSD_EVENTS_VERSION', self::VERSION );
+        }
+        if ( ! defined( 'MSD_EVENTS_DIR' ) ) {
+            define( 'MSD_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
+        }
+        if ( ! defined( 'MSD_EVENTS_URL' ) ) {
+            define( 'MSD_EVENTS_URL', plugin_dir_url( __FILE__ ) );
+        }
+        if ( ! defined( 'MSD_EVENTS_FILE' ) ) {
+            define( 'MSD_EVENTS_FILE', __FILE__ );
+        }
     }
 
+    /**
+     * Load required files
+     */
     private function includes() {
-        //require_once MSD_EVENTS_DIR . 'includes/class-msd-events-cpt.php';  DELETE THIS LINE
         require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-cpt-registrable.php';
         require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-taxonomy-registrable.php';
         require_once MSD_EVENTS_DIR . 'includes/cpt/interfaces/interface-meta-box-registrable.php';
@@ -62,39 +81,44 @@ class MSD_Events {
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-geocode.php';
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-display.php';
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-template.php';
-       
-        // Block class will be added later
-        require_once MSD_EVENTS_DIR . 'includes/helpers.php';
-
         require_once MSD_EVENTS_DIR . 'includes/class-msd-events-assets.php';
+
+        require_once MSD_EVENTS_DIR . 'includes/helpers.php';
     }
 
+    /**
+     * Hook into WordPress
+     */
     private function init_hooks() {
-        add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+        add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 
-        // CPT instance
-
-        new MSD_Events_CPT();
-        new MSD_Events_Taxonomy();
-        new MSD_Events_Meta_Box();
+        // Register core components on init (correct timing for CPT/Tax/Meta)
+        add_action( 'init', function() {
+            new MSD_Events_CPT();
+            new MSD_Events_Taxonomy();
+            new MSD_Events_Meta_Box();
+        }, 5 );
 
         if ( is_admin() ) {
             new MSD_Events_Admin_Columns();
         }
 
-        // Settings instance
+        // Settings
         new MSD_Events_Settings();
 
-        // Form instance
+        // Forms (frontend submission with nonce/validation inside that class)
         new MSD_Events_Form();
 
-         // Template instance
+        // Template loader
         new MSD_Events_Template();
-        // Assets instance
-        new MSD_Events_Assets();
 
+        // Assets (enqueue scripts/styles safely)
+        new MSD_Events_Assets();
     }
 
+    /**
+     * Load plugin textdomain
+     */
     public function load_textdomain() {
         load_plugin_textdomain(
             'msd-events',
@@ -102,9 +126,20 @@ class MSD_Events {
             dirname( plugin_basename( __FILE__ ) ) . '/languages'
         );
     }
-
 }
 
+/**
+ * Plugin activation/deactivation hooks
+ */
+register_activation_hook( __FILE__, function() {
+    // Flush rewrite rules for CPTs
+    MSD_Events::instance();
+    flush_rewrite_rules();
+} );
+
+register_deactivation_hook( __FILE__, function() {
+    flush_rewrite_rules();
+} );
 
 // Load the plugin
 MSD_Events::instance();

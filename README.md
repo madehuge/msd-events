@@ -13,7 +13,7 @@ A WordPress plugin that provides an Events Custom Post Type (CPT), front-end sub
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 3. Go to Settings -> MSD Events and add your Google Geocoding API key.
 4. Use the `[msd_event_form]` shortcode to display the front-end form, or use the Gutenberg block to show events.
-5. Use the `[msd_events_list]` shortcode to display the events at any page/post, or use the Gutenberg block to display events.
+5. Use the `[msd_events_list per_page="5"]` shortcode to display the events at any page/post, or use the Gutenberg block to display events.
 
 ### Git Clone (Developer Setup)
 If you are setting this up as a developer:
@@ -29,7 +29,7 @@ If you are setting this up as a developer:
 ## Usage
 - Admin: Configure API key and cache TTL.
 - Front-end submission: Use shortcode or include template.
-- Events listing: Create a page and assign the `events-list.php` template or use the block.
+- Events listing: Create a page and assign the `events-listing.php` template or use the block with Shortcode.
 
 ## Changelog
 See CHANGELOG.md
