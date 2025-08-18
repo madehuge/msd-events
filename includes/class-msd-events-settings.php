@@ -11,9 +11,9 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
         /**
          * Option keys.
          */
-        const OPTION_API_KEY      = 'msd_events_api_key';
-        const OPTION_API_URL      = 'msd_events_api_url';
-        const OPTION_PER_PAGE     = 'msd_events_per_page';
+        const OPTION_API_KEY  = 'msd_events_api_key';
+        const OPTION_API_URL  = 'msd_events_api_url';
+        const OPTION_PER_PAGE = 'msd_events_per_page';
 
         /**
          * Constructor.
@@ -24,7 +24,7 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
         }
 
         /**
-         * Add settings page.
+         * Add settings page under "Settings".
          */
         public function add_settings_page() {
             add_options_page(
@@ -40,27 +40,27 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
          * Register plugin settings.
          */
         public function register_settings() {
-            // API Key
+
+            // Register all options with proper sanitization.
             register_setting( 'msd_events_settings_group', self::OPTION_API_KEY, array(
                 'type'              => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
                 'default'           => '',
             ) );
 
-            // API URL
             register_setting( 'msd_events_settings_group', self::OPTION_API_URL, array(
                 'type'              => 'string',
                 'sanitize_callback' => 'esc_url_raw',
                 'default'           => 'https://maps.googleapis.com/maps/api/geocode/json',
             ) );
 
-            // Pagination setting
             register_setting( 'msd_events_settings_group', self::OPTION_PER_PAGE, array(
                 'type'              => 'integer',
                 'sanitize_callback' => 'absint',
                 'default'           => get_option( 'posts_per_page' ),
             ) );
 
+            // Section.
             add_settings_section(
                 'msd_events_main_section',
                 __( 'General Settings', 'msd-events' ),
@@ -68,7 +68,7 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
                 'msd-events-settings'
             );
 
-            // API Key field
+            // Fields.
             add_settings_field(
                 self::OPTION_API_KEY,
                 __( 'Google Geocoding API Key', 'msd-events' ),
@@ -77,7 +77,6 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
                 'msd_events_main_section'
             );
 
-            // API URL field
             add_settings_field(
                 self::OPTION_API_URL,
                 __( 'Google Geocoding API URL', 'msd-events' ),
@@ -86,7 +85,6 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
                 'msd_events_main_section'
             );
 
-            // Pagination field
             add_settings_field(
                 self::OPTION_PER_PAGE,
                 __( 'Events Per Page', 'msd-events' ),
@@ -97,35 +95,55 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
         }
 
         /**
-         * Render API key input field.
+         * Render API Key field.
          */
         public function render_api_key_field() {
             $value = esc_attr( get_option( self::OPTION_API_KEY, '' ) );
-            echo '<input type="text" name="' . esc_attr( self::OPTION_API_KEY ) . '" value="' . $value . '" class="regular-text" />';
+            printf(
+                '<input type="text" name="%1$s" value="%2$s" class="regular-text" placeholder="%3$s" />',
+                esc_attr( self::OPTION_API_KEY ),
+                $value,
+                esc_attr__( 'Enter Google API Key', 'msd-events' )
+            );
         }
 
         /**
-         * Render API URL input field.
+         * Render API URL field.
          */
         public function render_api_url_field() {
             $default_url = 'https://maps.googleapis.com/maps/api/geocode/json';
             $value       = esc_url( get_option( self::OPTION_API_URL, $default_url ) );
-            echo '<input type="url" name="' . esc_attr( self::OPTION_API_URL ) . '" value="' . $value . '" class="regular-text code" />';
-            echo '<p class="description">' . __( 'Base URL for the Google Geocoding API.', 'msd-events' ) . '</p>';
+
+            printf(
+                '<input type="url" name="%1$s" value="%2$s" class="regular-text code" />',
+                esc_attr( self::OPTION_API_URL ),
+                $value
+            );
+
+            echo '<p class="description">' . esc_html__( 'Base URL for the Google Geocoding API.', 'msd-events' ) . '</p>';
         }
 
         /**
-         * Render per-page input field.
+         * Render per-page field.
          */
         public function render_per_page_field() {
-            $default_ppp = get_option( 'posts_per_page' );
+            $default_ppp = (int) get_option( 'posts_per_page' );
             $value       = absint( get_option( self::OPTION_PER_PAGE, $default_ppp ) );
-            echo '<input type="number" name="' . esc_attr( self::OPTION_PER_PAGE ) . '" value="' . $value . '" class="small-text" min="1" />';
-            echo '<p class="description">' . sprintf( __( 'Leave blank to use WordPress default (%d).', 'msd-events' ), $default_ppp ) . '</p>';
+
+            printf(
+                '<input type="number" name="%1$s" value="%2$d" class="small-text" min="1" />',
+                esc_attr( self::OPTION_PER_PAGE ),
+                $value
+            );
+
+            echo '<p class="description">' . sprintf(
+                esc_html__( 'Leave blank to use WordPress default (%d).', 'msd-events' ),
+                $default_ppp
+            ) . '</p>';
         }
 
         /**
-         * Render settings page HTML.
+         * Render full settings page.
          */
         public function render_settings_page() {
             if ( ! current_user_can( 'manage_options' ) ) {
@@ -133,7 +151,7 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
             }
             ?>
             <div class="wrap">
-                <h1><?php _e( 'MSD Events Settings', 'msd-events' ); ?></h1>
+                <h1><?php esc_html_e( 'MSD Events Settings', 'msd-events' ); ?></h1>
                 <form method="post" action="options.php">
                     <?php
                     settings_fields( 'msd_events_settings_group' );
@@ -149,27 +167,22 @@ if ( ! class_exists( 'MSD_Events_Settings' ) ) {
          * Helper: Get API key.
          */
         public static function get_api_key() {
-            return get_option( self::OPTION_API_KEY, '' );
+            return sanitize_text_field( get_option( self::OPTION_API_KEY, '' ) );
         }
 
         /**
          * Helper: Get API URL.
          */
         public static function get_api_url() {
-            return get_option( self::OPTION_API_URL, '' );
+            return esc_url_raw( get_option( self::OPTION_API_URL, 'https://maps.googleapis.com/maps/api/geocode/json' ) );
         }
 
         /**
-         * Helper: Get per-page value or fallback.
+         * Helper: Get events per page.
          */
         public static function get_per_page() {
             $pp = absint( get_option( self::OPTION_PER_PAGE ) );
-            if ( $pp <= 0 ) {
-                return absint( get_option( 'posts_per_page' ) );
-            }
-            return $pp;
+            return $pp > 0 ? $pp : (int) get_option( 'posts_per_page' );
         }
-
     }
-
 }

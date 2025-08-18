@@ -34,12 +34,14 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
             $per_page = (int) $atts['per_page'];
             $paged    = max( 1, get_query_var( 'paged' ) );
 
-            // Use transient caching
-            $cache_key     = 'msd_events_list_' . $paged . '_' . $per_page;
-            $cached_output = get_transient( $cache_key );
+            $cache_key = 'msd_events_list_' . $paged . '_' . $per_page;
+            $cached    = get_transient( $cache_key );
 
-            if ( $cached_output ) {
-                return $cached_output;
+            // Always check maps API status even if cache is present
+            $this->maybe_log_maps_api_issue();
+
+            if ( $cached ) {
+                return $cached;
             }
 
             ob_start();
@@ -109,19 +111,28 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
                 echo '<p>' . esc_html__( 'No events found.', 'msd-events' ) . '</p>';
             }
 
-            // Ensure Google Maps script is enqueued
+            // Enqueue Google Maps if key available
             $this->enqueue_google_maps();
 
             $output = ob_get_clean();
 
-            // Store cached HTML for 12 hours
             set_transient( $cache_key, $output, 12 * HOUR_IN_SECONDS );
 
             return $output;
         }
 
         /**
-         * Enqueue Google Maps API
+         * Always log API key issue, even if using cache.
+         */
+        protected function maybe_log_maps_api_issue() {
+            $api_key = get_option( 'msd_events_api_key', '' );
+            if ( empty( $api_key ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( 'MSD Events: Google Maps API key is missing in plugin settings.' );
+            }
+        }
+
+        /**
+         * Enqueue Google Maps API.
          */
         protected function enqueue_google_maps() {
             static $loaded = false;
@@ -133,15 +144,12 @@ if ( ! class_exists( 'MSD_Events_Display' ) ) {
             if ( ! empty( $api_key ) ) {
                 wp_enqueue_script(
                     'google-maps',
-                    esc_url( 'https://maps.googleapis.com/maps/api/js?key=' . rawurlencode( $api_key ) ),
+                    esc_url( 'https://maps.googleapis.com/maps/api/js?key=' . rawurlencode( $api_key ) . '&libraries=places&callback=initAutocomplete' ),
                     [],
                     null,
                     true
                 );
-               
                 $loaded = true;
-            } else {
-                error_log( 'MSD Events: Google Maps API key is missing in plugin settings.' );
             }
         }
 

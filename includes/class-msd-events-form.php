@@ -14,6 +14,10 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
             // Handle AJAX submissions
             add_action( 'wp_ajax_msd_event_submit', [ $this, 'handle_form_submission_ajax' ] );
             add_action( 'wp_ajax_nopriv_msd_event_submit', [ $this, 'handle_form_submission_ajax' ] );
+
+            // (Optional) Handle non-AJAX fallback
+            add_action( 'admin_post_msd_event_submit', [ $this, 'handle_form_submission' ] );
+            add_action( 'admin_post_nopriv_msd_event_submit', [ $this, 'handle_form_submission' ] );
         }
 
         /**
@@ -37,20 +41,17 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
          * Handle standard (non-AJAX) form submission.
          */
         public function handle_form_submission() {
-            if ( ! isset( $_POST['msd_event_nonce'] ) ||
-                 ! msd_events_verify_nonce( sanitize_text_field( wp_unslash( $_POST['msd_event_nonce'] ) ), 'form_action' ) ) {
-                wp_die( esc_html__( 'Security check failed.', 'msd-events' ) );
-            }
+            check_admin_referer( 'form_action', 'msd_event_nonce' );
 
             $form_data = $this->sanitize_form_data( wp_unslash( $_POST ) );
-
-            $result = $this->process_form_data( $form_data );
+            $result    = $this->process_form_data( $form_data );
 
             if ( is_wp_error( $result ) ) {
                 wp_die( esc_html( $result->get_error_message() ) );
             }
 
-            // Redirect with success message
+            do_action( 'msd_event_form_success', $result, $form_data );
+
             wp_safe_redirect(
                 add_query_arg( 'event_submitted', '1', wp_get_referer() )
             );
@@ -61,22 +62,19 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
          * Handle AJAX form submission.
          */
         public function handle_form_submission_ajax() {
-            // Verify nonce
             if ( ! isset( $_POST['msd_event_nonce'] ) || 
                 ! msd_events_verify_nonce( sanitize_text_field( wp_unslash( $_POST['msd_event_nonce'] ) ), 'form_action' ) ) {
                 wp_send_json_error( [ 'message' => __( 'Security check failed.', 'msd-events' ) ] );
             }
 
-            // (Optional) Capability check — you can allow only logged-in users or specific roles We are commenting this for now
-            // if ( ! is_user_logged_in() ) {
-            //     wp_send_json_error( [ 'message' => __( 'You must be logged in to submit an event.', 'msd-events' ) ] );
-            // }
-
-            $result = $this->process_form_data( wp_unslash( $_POST ) );
+            $form_data = $this->sanitize_form_data( wp_unslash( $_POST ) );
+            $result    = $this->process_form_data( $form_data );
 
             if ( is_wp_error( $result ) ) {
                 wp_send_json_error( [ 'message' => $result->get_error_message() ] );
             }
+
+            do_action( 'msd_event_form_success', $result, $form_data );
 
             wp_send_json_success( [
                 'message' => __( 'Event submitted successfully!', 'msd-events' ),
@@ -85,24 +83,34 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
         }
 
         /**
+         * Sanitize raw form data.
+         */
+        private function sanitize_form_data( $data ) {
+            return [
+                'event_title'       => msd_events_sanitize_text( $data['event_title'] ?? '' ),
+                'event_description' => msd_events_sanitize_html( $data['event_description'] ?? '' ),
+                'event_datetime'    => msd_events_sanitize_text( $data['event_datetime'] ?? '' ),
+                'event_location'    => msd_events_sanitize_text( $data['event_location'] ?? '' ),
+            ];
+        }
+
+        /**
          * Process form data and insert event post.
          */
         private function process_form_data( $data ) {
-            $title       = msd_events_sanitize_text( $data['event_title'] ?? '' );
-            $description = msd_events_sanitize_html( $data['event_description'] ?? '' );
-            $date        = msd_events_sanitize_text( $data['event_datetime'] ?? '' );
-            $location    = msd_events_sanitize_text( $data['event_location'] ?? '' );
-            
-            $date_obj = DateTime::createFromFormat('Y-m-d\TH:i', $date);
+            $title       = $data['event_title'];
+            $description = $data['event_description'];
+            $date        = $data['event_datetime'];
+            $location    = $data['event_location'];
 
-           
             // Validation
             if ( empty( $title ) || empty( $date ) || empty( $location ) ) {
                 return new WP_Error( 'missing_fields', __( 'Please fill in all required fields.', 'msd-events' ) );
             }
 
-            // Validate datetime format (MM/DD/YYYY HH:MM AM/PM)
-            if ( ! $date_obj || $date_obj->format('Y-m-d\TH:i') !== $date ) {
+            // Validate datetime format
+            $date_obj = DateTime::createFromFormat( 'Y-m-d\TH:i', $date );
+            if ( ! $date_obj || $date_obj->format( 'Y-m-d\TH:i' ) !== $date ) {
                 return new WP_Error(
                     'invalid_datetime',
                     __( 'Please enter a valid date & time (YYYY-MM-DD HH:MM).', 'msd-events' )
@@ -110,8 +118,7 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
             }
 
             // Geocode location (optional)
-            $lat = '';
-            $lng = '';
+            $lat = $lng = '';
             if ( class_exists( 'MSD_Events_Geocode' ) ) {
                 $geo    = new MSD_Events_Geocode();
                 $coords = $geo->get_coordinates( $location );
@@ -128,7 +135,7 @@ if ( ! class_exists( 'MSD_Events_Form' ) ) {
                 'post_type'    => 'msd_event',
                 'post_title'   => $title,
                 'post_content' => $description,
-                'post_status'  => 'pending', // review before publish
+                'post_status'  => 'pending', // or 'publish' if auto-approval
             ], true );
 
             if ( is_wp_error( $post_id ) ) {
